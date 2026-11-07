@@ -1,0 +1,22 @@
+[project]
+name = "efi-backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "cachu94", email = "fgiacri.94@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.1",
+    "fastapi-pagination>=0.16.2",
+    "fastapi[standard]>=0.162.1",
+    "sqlmodel>=0.0.48",
+]
+
+[project.scripts]
+efi-backend = "efi_backend:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
