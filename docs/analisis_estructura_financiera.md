@@ -65,6 +65,21 @@ flowchart TD
 >   3. Devuelve: `presupuesto_diario_estimado` e `indice_endeudamiento_dti` para cada período futuro.
 > - **Resultado**: Una serie temporal para graficar la evolución y ver cuándo repunta la liquidez diaria.
 
+> [!IMPORTANT]
+>
+> ### 5. Asignación y Previsión de Liquidez por Cuenta / Billetera (Cash Allocation)
+>
+> No todo el dinero está en el mismo lugar:
+>
+> - El sueldo ingresa a una cuenta bancaria (ej. ICBC).
+> - Ciertos gastos fijos y cuotas se debitan de esa cuenta bancaria (ej. Plan Auto, Monotributo).
+> - Otros débitos o gastos de ocio corren por billeteras virtuales (ej. Mercado Pago, Claro Pay).
+> - **Regla de Negocio**: Al inicio del ciclo (día de cobro), el sistema debe generar una **Sugerencia de Distribución de Fondos**:
+>   - _"Mantené \$X en ICBC para cubrir los débitos automáticos de este ciclo"_.
+>   - _"Transferí \$Y a Mercado Pago para afrontar cuotas y gastos diarios"_.
+>   - Esto previene el clásico rebote de débitos por falta de fondos en la cuenta de origen.
+> - **Alcance V1**: La entidad opera como **clasificador de ruteo/fondeo** (no mantiene saldo vivo transaccional), optimizando la simplicidad del dominio sin sobrecargar la conciliación bancaria.
+
 ---
 
 ## 3. Modelo de Entidades (En Español)
@@ -79,9 +94,19 @@ classDiagram
         +float porcentaje_ahorro_objetivo
     }
 
+    class CuentaFinanciera {
+        +int id
+        +int id_usuario
+        +string nombre
+        +string tipo_cuenta
+        +string entidad
+        +bool activo
+    }
+
     class Ingreso {
         +int id
         +int id_usuario
+        +int id_cuenta_destino
         +string descripcion
         +float monto
         +date fecha_ingreso
@@ -91,6 +116,7 @@ classDiagram
     class GastoFijo {
         +int id
         +int id_usuario
+        +int id_cuenta_debito
         +string categoria
         +string descripcion
         +float monto
@@ -102,6 +128,7 @@ classDiagram
     class CreditoDeuda {
         +int id
         +int id_usuario
+        +int id_cuenta_debito
         +string entidad_acreedora
         +string descripcion
         +float precio_contado
@@ -118,31 +145,39 @@ classDiagram
     class GastoDiario {
         +int id
         +int id_usuario
+        +int id_cuenta_origen
         +float monto
         +date fecha
         +string categoria
         +string notas
     }
 
+    PerfilUsuario "1" --> "*" CuentaFinanciera : posee
     PerfilUsuario "1" --> "*" Ingreso : tiene
     PerfilUsuario "1" --> "*" GastoFijo : compromete
     PerfilUsuario "1" --> "*" CreditoDeuda : amortiza
     PerfilUsuario "1" --> "*" GastoDiario : ejecuta
+
+    CuentaFinanciera "1" --> "*" Ingreso : recibe
+    CuentaFinanciera "1" --> "*" GastoFijo : debita
+    CuentaFinanciera "1" --> "*" CreditoDeuda : paga
+    CuentaFinanciera "1" --> "*" GastoDiario : financia
 ```
 
 ### Detalle de Atributos y Responsabilidades
 
-| Entidad             | Propósito Principal                                                                     | Campos Clave                                            |
-| :------------------ | :-------------------------------------------------------------------------------------- | :------------------------------------------------------ |
-| **`PerfilUsuario`** | Configuración base del ciclo financiero.                                                | `dia_cobro`, `porcentaje_ahorro_objetivo`               |
-| **`Ingreso`**       | Fondos que ingresan al patrimonio.                                                      | `monto`, `fecha_ingreso`, `es_recurrente`               |
-| **`GastoFijo`**     | Salidas continuas sin cuotas finitas. Permite bajas lógicas y actualización de precios. | `monto`, `dia_vencimiento`, `activo`, `fecha_baja`      |
-| **`CreditoDeuda`**  | Compromisos con plazo definido, cálculo de costo financiero total y desendeudamiento.   | `monto_cuota`, `total_cuotas`, `cuota_actual`, `estado` |
-| **`GastoDiario`**   | Consumos cotidianos que van mermando el fondo libre disponible del ciclo.               | `monto`, `fecha`, `categoria`                           |
+| Entidad                | Propósito Principal                                                  | Campos Clave                                                   |
+| :--------------------- | :------------------------------------------------------------------- | :------------------------------------------------------------- |
+| **`PerfilUsuario`**    | Configuración base del ciclo financiero.                             | `dia_cobro`, `porcentaje_ahorro_objetivo`                      |
+| **`CuentaFinanciera`** | Billeteras digitales o cuentas bancarias (ICBC, Mercado Pago, etc.). | `nombre`, `tipo_cuenta` (banco, billetera, efectivo), `activo` |
+| **`Ingreso`**          | Fondos que ingresan al patrimonio y cuenta receptora.                | `monto`, `id_cuenta_destino`, `fecha_ingreso`                  |
+| **`GastoFijo`**        | Salidas continuas con su respectiva cuenta de débito automático.     | `monto`, `dia_vencimiento`, `id_cuenta_debito`, `activo`       |
+| **`CreditoDeuda`**     | Préstamos o planes con su cuenta de pago asociada.                   | `monto_cuota`, `total_cuotas`, `id_cuenta_debito`, `estado`    |
+| **`GastoDiario`**      | Consumos cotidianos descontados de la billetera/cuenta utilizada.    | `monto`, `fecha`, `id_cuenta_origen`                           |
 
 ---
 
-### 4. Alineación con los Requisitos Técnicos de la Cátedra (EFI)
+## 4. Alineación con los Requisitos Técnicos de la Cátedra (EFI)
 
 Para cumplir a rajatabla con el reglamento de la cátedra de Facundo Lemo:
 
