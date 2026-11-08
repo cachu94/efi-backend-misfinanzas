@@ -1,21 +1,18 @@
 from datetime import date, timedelta
-import calendar
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from src.database import get_session
-from src.models.usuarios import Usuario
-from src.models.ingresos import Ingreso
-from src.models.gastos_fijos import GastoFijo
-from src.models.creditos import CreditoDeuda
-from src.models.gastos_diarios import GastoDiario
-
-
-router = APIRouter(
-    prefix="/metricas",
-    tags=["Métricas y Análisis Financiero"]
+from src.models import CreditoDeuda, GastoDiario, GastoFijo, Ingreso, Usuario
+from src.models.metricas import (
+    ItemProyeccionMes,
+    MetricasCicloResponse,
+    SimulacionCreditoRequest,
+    SugerenciaDistribucionCuenta,
 )
+
+router = APIRouter(prefix="/metricas", tags=["Métricas y Análisis Financiero"])
 
 error_usuario_404 = {
     404: {
@@ -26,44 +23,11 @@ error_usuario_404 = {
     }
 }
 
-class MetricasCicloResponse(BaseModel):
-    periodo_inicio: date
-    periodo_fin: date
-    dias_restantes: int
-    ingresos_totales: float
-    gastos_fijos_totales: float
-    cuotas_deudas_totales: float
-    superavit_operativo: float
-    ahorro_programado: float
-    saldo_libre_ciclo: float
-    gastos_diarios_acumulados: float
-    saldo_disponible_remanente: float
-    presupuesto_diario_dinamico: float
 
-
-class SugerenciaDistribucionCuenta(BaseModel):
-    cuenta_id: int | None
-    nombre_cuenta: str
-    monto_comprometido: float
-    motivo: str
-
-
-class SimulacionCreditoRequest(BaseModel):
-    monto_cuota_simulada: float = Field(gt=0, description="Monto mensual de la nueva cuota")
-    total_cuotas_simuladas: int = Field(ge=1, description="Cantidad de cuotas del crédito a evaluar")
-
-
-class ItemProyeccionMes(BaseModel):
-    mes_numero: int
-    fecha_referencia: date
-    cuotas_existentes: float
-    cuota_simulada: float
-    superavit_estimado: float
-    presupuesto_diario_estimado: float
-    indice_endeudamiento_dti: float
-
-
-def obtener_rango_ciclo(dia_cobro: int, fecha_ref: date = date.today()) -> tuple[date, date]:
+def obtener_rango_ciclo(
+    dia_cobro: int,
+    fecha_ref: date = date.today(),  # noqa: B008
+) -> tuple[date, date]:
     year = fecha_ref.year
     month = fecha_ref.month
 
@@ -86,15 +50,21 @@ def obtener_rango_ciclo(dia_cobro: int, fecha_ref: date = date.today()) -> tuple
     return inicio, fin
 
 
-@router.get("/ciclo-actual/{usuario_id}", response_model=MetricasCicloResponse, responses=error_usuario_404)
-def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):
+@router.get(
+    "/ciclo-actual/{usuario_id}",
+    response_model=MetricasCicloResponse,
+    responses=error_usuario_404,  # type: ignore
+)
+def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!"
+        )
 
     hoy = date.today()
     inicio_ciclo, fin_ciclo = obtener_rango_ciclo(usuario.dia_cobro, hoy)
-    
+
     dias_restantes = max((fin_ciclo - hoy).days + 1, 1)
 
     ingresos = db.exec(
@@ -122,8 +92,10 @@ def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):
     ).all()
     cuotas_deudas_totales = sum(c.monto_cuota for c in creditos)
 
-    superavit_operativo = ingresos_totales - (gastos_fijos_totales + cuotas_deudas_totales)
-    ahorro_programado = ingresos_totales * (usuario.porcentaje_ahorro_objetivo / 100.0)
+    superavit_operativo = ingresos_totales - (
+        gastos_fijos_totales + cuotas_deudas_totales
+    )
+    ahorro_programado = ingresos_totales * (usuario.porcentaje_ahorro / 100.0)
     saldo_libre_ciclo = superavit_operativo - ahorro_programado
 
     gastos_diarios = db.exec(
@@ -154,18 +126,28 @@ def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):
     )
 
 
-@router.get("/distribucion-fondos/{usuario_id}", response_model=list[SugerenciaDistribucionCuenta], responses=error_usuario_404)
-def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_session)):
+@router.get(
+    "/distribucion-fondos/{usuario_id}",
+    response_model=list[SugerenciaDistribucionCuenta],
+    responses=error_usuario_404,  # type: ignore
+)
+def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!"
+        )
 
     gastos_fijos = db.exec(
-        select(GastoFijo).where(GastoFijo.usuario_id == usuario_id, GastoFijo.activo == True)
+        select(GastoFijo).where(
+            GastoFijo.usuario_id == usuario_id, GastoFijo.activo == True
+        )
     ).all()
 
     creditos = db.exec(
-        select(CreditoDeuda).where(CreditoDeuda.usuario_id == usuario_id, CreditoDeuda.estado == "activo")
+        select(CreditoDeuda).where(
+            CreditoDeuda.usuario_id == usuario_id, CreditoDeuda.estado == "activo"
+        )
     ).all()
 
     distribucion: dict[int | None, float] = {}
@@ -191,15 +173,21 @@ def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_sessi
     return resultado
 
 
-@router.post("/simulacion/credito/{usuario_id}", response_model=list[ItemProyeccionMes], responses=error_usuario_404)
+@router.post(
+    "/simulacion/credito/{usuario_id}",
+    response_model=list[ItemProyeccionMes],
+    responses=error_usuario_404,  # type: ignore
+)
 def simular_nuevo_credito(
     usuario_id: int,
     simulacion: SimulacionCreditoRequest,
-    db: Session = Depends(get_session),
+    db: Session = Depends(get_session),  # noqa: B008
 ):
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado!"
+        )
 
     hoy = date.today()
     inicio_ciclo, _ = obtener_rango_ciclo(usuario.dia_cobro, hoy)
@@ -208,12 +196,16 @@ def simular_nuevo_credito(
     ingreso_base = sum(i.monto for i in ingresos) or 1.0
 
     gastos_fijos = db.exec(
-        select(GastoFijo).where(GastoFijo.usuario_id == usuario_id, GastoFijo.activo == True)
+        select(GastoFijo).where(
+            GastoFijo.usuario_id == usuario_id, GastoFijo.activo == True
+        )
     ).all()
     gasto_fijo_base = sum(gf.monto for gf in gastos_fijos)
 
     creditos_activos = db.exec(
-        select(CreditoDeuda).where(CreditoDeuda.usuario_id == usuario_id, CreditoDeuda.estado == "activo")
+        select(CreditoDeuda).where(
+            CreditoDeuda.usuario_id == usuario_id, CreditoDeuda.estado == "activo"
+        )
     ).all()
 
     proyeccion = []
@@ -226,7 +218,7 @@ def simular_nuevo_credito(
                 cuotas_existentes_mes += c.monto_cuota
 
         deuda_total_mes = cuotas_existentes_mes + simulacion.monto_cuota_simulada
-        ahorro = ingreso_base * (usuario.porcentaje_ahorro_objetivo / 100.0)
+        ahorro = ingreso_base * (usuario.porcentaje_ahorro / 100.0)
         superavit = ingreso_base - gasto_fijo_base - deuda_total_mes - ahorro
         presupuesto_diario = max(superavit / 30.0, 0.0)
 
