@@ -11,9 +11,12 @@ wheels/
 venv/
 
 #Base de Datos
-*.sqlite3
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
 *.sqlite
+*.sqlite3
 
 # Variable de entorno
 .env
@@ -23,3 +26,5 @@ venv/
 .idea/
 .agents/
 GEMINI.md
+
+
