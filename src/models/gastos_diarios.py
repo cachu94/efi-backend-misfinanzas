@@ -53,3 +53,16 @@ class GastoDiarioPublic(GastoDiarioBase):
 class GastoDiarioNested(GastoDiarioPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
+# -----------------------------------------------------------------------
+class GastoDiarioCreate(GastoDiarioBase):
+    pass
+
+
+class GastoDiarioUpdate(SQLModel):
+    usuario_id: int | None = None
+    cuenta_id: int | None = None
+    monto: float | None = Field(default=None, gt=0)
+    fecha: date | None = None
+    categoria: str | None = Field(default=None, min_length=2, max_length=50)
+    notas: str | None = Field(default=None, max_length=200)

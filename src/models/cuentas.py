@@ -50,3 +50,18 @@ class CuentaPublic(CuentaBase):
 
 class CuentaNested(CuentaPublic):
     usuario: "UsuarioPublic"
+
+
+
+
+#lo mismo que antes, te genero dos cuestiones que tengo que usar en los pads, fijate que te los voy a agregar en todos xd
+class CuentaCreate(CuentaBase):
+    pass
+
+
+class CuentaUpdate(SQLModel):
+    usuario_id: int | None = None
+    nombre: str | None = Field(default=None, min_length=2, max_length=50)
+    tipo_cuenta: str | None = Field(default=None, min_length=3, max_length=50)
+    entidad: str | None = Field(default=None, max_length=100)
+    activo: bool | None = None

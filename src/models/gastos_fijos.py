@@ -58,3 +58,19 @@ class GastoFijoPublic(GastoFijoBase):
 class GastoFijoNested(GastoFijoPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
+
+#----------------------------------------------------
+class GastoFijoCreate(GastoFijoBase):
+    pass
+
+
+class GastoFijoUpdate(SQLModel):
+    usuario_id: int | None = None
+    cuenta_id: int | None = None
+    categoria: str | None = Field(default=None, min_length=2, max_length=50)
+    descripcion: str | None = Field(default=None, min_length=3, max_length=150)
+    monto: float | None = Field(default=None, gt=0)
+    dia_vencimiento: int | None = Field(default=None, ge=1, le=31)
+    activo: bool | None = None
+    fecha_baja: date | None = None

@@ -62,3 +62,21 @@ class CreditoDeudaPublic(CreditoDeudaBase):
 class CreditoDeudaNested(CreditoDeudaPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
+#Facu te agrego estas dependencias porque las necesito para los path operations (los podia hacer en el route, pero lo pongo aca para que sea mas semantico)...
+
+class CreditoDeudaCreate(CreditoDeudaBase):
+    pass
+
+
+class CreditoDeudaUpdate(SQLModel):
+    usuario_id: int | None = None
+    cuenta_id: int | None = None
+    entidad_acreedora: str | None = Field(default=None, min_length=2, max_length=100)
+    descripcion: str | None = Field(default=None, min_length=3, max_length=150)
+    precio_contado: float | None = Field(default=None, gt=0)
+    monto_cuota: float | None = Field(default=None, gt=0)
+    total_cuotas: int | None = Field(default=None, ge=1)
+    cuota_actual: int | None = Field(default=None, ge=1)
+    fecha_inicio: str | None = None
+    estado: str | None = Field(default=None, description="activo | finalizada | cancelada")

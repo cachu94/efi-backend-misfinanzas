@@ -47,3 +47,16 @@ class IngresoPublic(IngresoBase):
 class IngresoNested(IngresoPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
+# --------------------------------------------------------
+class IngresoCreate(IngresoBase):
+    pass
+
+
+class IngresoUpdate(SQLModel):
+    usuario_id: int | None = None
+    cuenta_id: int | None = None
+    descripcion: str | None = Field(default=None, min_length=2, max_length=150)
+    monto: float | None = Field(default=None, gt=0)
+    fecha_ingreso: date | None = None
+    es_recurrente: bool | None = None

@@ -48,3 +48,16 @@ class UsuarioNested(UsuarioPublic):
     gastos_fijos: list["GastoFijoPublic"] = []
     creditos_deuda: list["CreditoDeudaPublic"] = []
     gastos_diarios: list["GastoDiarioPublic"] = []
+
+
+# --------------------------------------------------------------
+class UsuarioCreate(UsuarioBase):
+    pass
+
+
+class UsuarioUpdate(SQLModel):
+    nombre: str | None = Field(default=None, min_length=2, max_length=100)
+    email: str | None = Field(default=None, min_length=5, max_length=100)
+    dia_cobro: int | None = Field(default=None, ge=1, le=31)
+    porcentaje_ahorro_objetivo: float | None = Field(default=None, ge=0, le=100)
+
