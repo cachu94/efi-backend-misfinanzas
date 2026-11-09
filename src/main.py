@@ -1,7 +1,12 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
+from sqlmodel import SQLModel
 
+import src.models
+from src.database import engine
 from src.routers import (
     creditos,
     cuentas,
@@ -12,8 +17,16 @@ from src.routers import (
     usuarios,
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    SQLModel.metadata.create_all(engine)
+    yield
+
+
 app = FastAPI(
     title="Sistema de Finanzas Personales - API",
+    lifespan=lifespan,
     description="""Backend modular desarrollado con FastAPI, SQLModel y SQLite.
     Permite el control integral del flujo financiero mensual, gestión de cuentas,
     baja lógica de gastos fijos, máquina de estados para créditos y cálculo
