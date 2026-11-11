@@ -45,7 +45,7 @@ class GastoFijoBase(SQLModel):
 class GastoFijo(GastoFijoBase, table=True):
     __tablename__ = "gastos_fijos"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     usuario: "Usuario" = Relationship(back_populates="gastos_fijos")
     cuenta: Optional["Cuenta"] = Relationship(back_populates="gastos_fijos")
@@ -60,7 +60,7 @@ class GastoFijoNested(GastoFijoPublic):
     cuenta: "CuentaPublic | None" = None
 
 
-#----------------------------------------------------
+# ----------------------------------------------------
 class GastoFijoCreate(GastoFijoBase):
     pass
 

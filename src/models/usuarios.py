@@ -29,7 +29,7 @@ class UsuarioBase(SQLModel):
 class Usuario(UsuarioBase, table=True):
     __tablename__ = "usuarios"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     ingresos: list["Ingreso"] = Relationship(back_populates="usuario")
     cuentas: list["Cuenta"] = Relationship(back_populates="usuario")
@@ -60,4 +60,3 @@ class UsuarioUpdate(SQLModel):
     email: str | None = Field(default=None, min_length=5, max_length=100)
     dia_cobro: int | None = Field(default=None, ge=1, le=31)
     porcentaje_ahorro_objetivo: float | None = Field(default=None, ge=0, le=100)
-

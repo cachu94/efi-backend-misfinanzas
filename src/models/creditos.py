@@ -49,7 +49,7 @@ class CreditoDeudaBase(SQLModel):
 class CreditoDeuda(CreditoDeudaBase, table=True):
     __tablename__ = "creditos_deuda"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     usuario: "Usuario" = Relationship(back_populates="creditos_deuda")
     cuenta: Optional["Cuenta"] = Relationship(back_populates="creditos_deuda")

@@ -3,10 +3,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
-from sqlmodel import SQLModel
+from sqlmodel import Session, SQLModel, select
 
 import src.models  # noqa: F401
 from src.database import engine
+from src.models import Usuario
 from src.routers import (
     creditos,
     cuentas,
@@ -16,11 +17,15 @@ from src.routers import (
     metricas,
     usuarios,
 )
+from src.seed import sembrar_datos_iniciales
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        if not session.exec(select(Usuario)).first():
+            sembrar_datos_iniciales(session)
     yield
 
 

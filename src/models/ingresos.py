@@ -34,7 +34,7 @@ class IngresoBase(SQLModel):
 class Ingreso(IngresoBase, table=True):
     __tablename__ = "ingresos"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     usuario: "Usuario" = Relationship(back_populates="ingresos")
     cuenta: Optional["Cuenta"] = Relationship(back_populates="ingresos")
@@ -47,6 +47,7 @@ class IngresoPublic(IngresoBase):
 class IngresoNested(IngresoPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
 
 # --------------------------------------------------------
 class IngresoCreate(IngresoBase):

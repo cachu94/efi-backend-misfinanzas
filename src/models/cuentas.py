@@ -35,7 +35,7 @@ class CuentaBase(SQLModel):
 class Cuenta(CuentaBase, table=True):
     __tablename__ = "cuentas"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     usuario: "Usuario" = Relationship(back_populates="cuentas")
     ingresos: list["Ingreso"] = Relationship(back_populates="cuenta")
@@ -52,9 +52,7 @@ class CuentaNested(CuentaPublic):
     usuario: "UsuarioPublic"
 
 
-
-
-#lo mismo que antes, te genero dos cuestiones que tengo que usar en los pads, fijate que te los voy a agregar en todos xd
+# lo mismo que antes, te genero dos cuestiones que tengo que usar en los pads, fijate que te los voy a agregar en todos xd
 class CuentaCreate(CuentaBase):
     pass
 

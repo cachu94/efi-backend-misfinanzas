@@ -40,7 +40,7 @@ class GastoDiarioBase(SQLModel):
 class GastoDiario(GastoDiarioBase, table=True):
     __tablename__ = "gastos_diarios"  # type: ignore
 
-    id: Annotated[int | None, Field(default=None, primary_key=True)]
+    id: Annotated[int | None, Field(default=None, primary_key=True)] = None
 
     usuario: "Usuario" = Relationship(back_populates="gastos_diarios")
     cuenta: Optional["Cuenta"] = Relationship(back_populates="gastos_diarios")
@@ -53,6 +53,7 @@ class GastoDiarioPublic(GastoDiarioBase):
 class GastoDiarioNested(GastoDiarioPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
+
 
 # -----------------------------------------------------------------------
 class GastoDiarioCreate(GastoDiarioBase):
