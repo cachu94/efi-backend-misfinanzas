@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 from sqlmodel import SQLModel
 
-import src.models
+import src.models  # noqa: F401
 from src.database import engine
 from src.routers import (
     creditos,

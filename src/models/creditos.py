@@ -38,8 +38,8 @@ class CreditoDeudaBase(SQLModel):
     monto_cuota: MontoCuota
     total_cuotas: CantCuotas
     cuota_actual: Annotated[
-        int, Field(default=1, ge=1, description="Cuota actual del crédito")
-    ] = 1
+        int, Field(default=0, ge=0, description="Cuota actual / pagada del crédito")
+    ] = 0
     fecha_inicio: date
     estado: Annotated[
         str, Field(default="activo", description="activo | finalizada | cancelada")
@@ -63,7 +63,9 @@ class CreditoDeudaNested(CreditoDeudaPublic):
     usuario: "UsuarioPublic"
     cuenta: "CuentaPublic | None" = None
 
-#Facu te agrego estas dependencias porque las necesito para los path operations (los podia hacer en el route, pero lo pongo aca para que sea mas semantico)...
+
+# Facu te agrego estas dependencias porque las necesito para los path operations (los podia hacer en el route, pero lo pongo aca para que sea mas semantico)...
+
 
 class CreditoDeudaCreate(CreditoDeudaBase):
     pass
@@ -77,6 +79,8 @@ class CreditoDeudaUpdate(SQLModel):
     precio_contado: float | None = Field(default=None, gt=0)
     monto_cuota: float | None = Field(default=None, gt=0)
     total_cuotas: int | None = Field(default=None, ge=1)
-    cuota_actual: int | None = Field(default=None, ge=1)
+    cuota_actual: int | None = Field(default=None, ge=0)
     fecha_inicio: str | None = None
-    estado: str | None = Field(default=None, description="activo | finalizada | cancelada")
+    estado: str | None = Field(
+        default=None, description="activo | finalizada | cancelada"
+    )
