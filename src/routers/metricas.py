@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from src.database import get_session
-from src.models import CreditoDeuda, GastoDiario, GastoFijo, Ingreso, Usuario
+from src.models import CreditoDeuda, Cuenta, GastoDiario, GastoFijo, Ingreso, Usuario
 from src.models.metricas import (
     ItemProyeccionMes,
     MetricasCicloResponse,
@@ -160,7 +160,12 @@ def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_sessi
 
     resultado = []
     for cuenta_id, monto in distribucion.items():
-        nombre = f"Cuenta ID {cuenta_id}" if cuenta_id else "Sin cuenta asignada"
+        if cuenta_id:
+            cuenta = db.get(Cuenta, cuenta_id)
+            nombre = cuenta.nombre if cuenta else f"Cuenta ID {cuenta_id}"
+        else:
+            nombre = "Sin cuenta asignada"
+
         resultado.append(
             SugerenciaDistribucionCuenta(
                 cuenta_id=cuenta_id,
