@@ -25,7 +25,7 @@ error_404 = {
 
 
 @router.post("/", response_model=CuentaPublic, status_code=status.HTTP_201_CREATED)
-def crear_cuenta(cuenta: CuentaCreate, db: Session = Depends(get_session)):  # noqa: B008
+def crear_cuenta(cuenta: CuentaCreate, db: Session = Depends(get_session)): 
     db_cuenta = Cuenta.model_validate(cuenta)
     db.add(db_cuenta)
     db.commit()
@@ -34,13 +34,13 @@ def crear_cuenta(cuenta: CuentaCreate, db: Session = Depends(get_session)):  # n
 
 
 @router.get("/", response_model=Page[CuentaPublic])
-def listar_cuentas(db: Session = Depends(get_session)):  # noqa: B008
+def listar_cuentas(db: Session = Depends(get_session)):  
     query = select(Cuenta).where(Cuenta.activo == True)
-    return paginate(db, query)  # type: ignore
+    return paginate(db, query) 
 
 
-@router.get("/{cuenta_id}", response_model=CuentaNested, responses=error_404)  # type: ignore
-def obtener_cuenta(cuenta_id: int, db: Session = Depends(get_session)):  # noqa: B008
+@router.get("/{cuenta_id}", response_model=CuentaNested, responses=error_404) 
+def obtener_cuenta(cuenta_id: int, db: Session = Depends(get_session)):  
     cuenta = db.get(Cuenta, cuenta_id)
     if not cuenta:
         raise HTTPException(
@@ -49,11 +49,11 @@ def obtener_cuenta(cuenta_id: int, db: Session = Depends(get_session)):  # noqa:
     return cuenta
 
 
-@router.patch("/{cuenta_id}", response_model=CuentaPublic, responses=error_404)  # type: ignore
+@router.patch("/{cuenta_id}", response_model=CuentaPublic, responses=error_404)  
 def actualizar_cuenta(
     cuenta_id: int,
     cuenta_update: CuentaUpdate,
-    db: Session = Depends(get_session),  # noqa: B008
+    db: Session = Depends(get_session),  
 ):
     db_cuenta = db.get(Cuenta, cuenta_id)
     if not db_cuenta:
@@ -70,8 +70,8 @@ def actualizar_cuenta(
     return db_cuenta
 
 
-@router.delete("/{cuenta_id}", responses=error_404)  # type: ignore
-def eliminar_cuenta(cuenta_id: int, db: Session = Depends(get_session)):  # noqa: B008
+@router.delete("/{cuenta_id}", responses=error_404)  
+def eliminar_cuenta(cuenta_id: int, db: Session = Depends(get_session)):  
     cuenta = db.get(Cuenta, cuenta_id)
     if not cuenta:
         raise HTTPException(
