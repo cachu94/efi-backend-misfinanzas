@@ -26,7 +26,7 @@ error_usuario_404 = {
 
 def obtener_rango_ciclo(
     dia_cobro: int,
-    fecha_ref: date = date.today(),  # noqa: B008
+    fecha_ref: date = date.today(),  
 ) -> tuple[date, date]:
     year = fecha_ref.year
     month = fecha_ref.month
@@ -53,9 +53,9 @@ def obtener_rango_ciclo(
 @router.get(
     "/ciclo-actual/{usuario_id}",
     response_model=MetricasCicloResponse,
-    responses=error_usuario_404,  # type: ignore
+    responses=error_usuario_404, 
 )
-def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
+def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)): 
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(
@@ -129,9 +129,9 @@ def obtener_metricas_ciclo(usuario_id: int, db: Session = Depends(get_session)):
 @router.get(
     "/distribucion-fondos/{usuario_id}",
     response_model=list[SugerenciaDistribucionCuenta],
-    responses=error_usuario_404,  # type: ignore
+    responses=error_usuario_404,  
 )
-def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
+def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_session)):  
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(
@@ -181,12 +181,12 @@ def obtener_distribucion_fondos(usuario_id: int, db: Session = Depends(get_sessi
 @router.post(
     "/simulacion/credito/{usuario_id}",
     response_model=list[ItemProyeccionMes],
-    responses=error_usuario_404,  # type: ignore
+    responses=error_usuario_404,  
 )
 def simular_nuevo_credito(
     usuario_id: int,
     simulacion: SimulacionCreditoRequest,
-    db: Session = Depends(get_session),  # noqa: B008
+    db: Session = Depends(get_session),  
 ):
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
