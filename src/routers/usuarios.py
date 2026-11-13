@@ -25,7 +25,7 @@ error_404 = {
 
 
 @router.post("/", response_model=UsuarioPublic, status_code=status.HTTP_201_CREATED)
-def crear_usuario(usuario: UsuarioCreate, db: Session = Depends(get_session)):  # noqa: B008
+def crear_usuario(usuario: UsuarioCreate, db: Session = Depends(get_session)):  
     db_usuario = Usuario.model_validate(usuario)
     db.add(db_usuario)
     db.commit()
@@ -34,13 +34,13 @@ def crear_usuario(usuario: UsuarioCreate, db: Session = Depends(get_session)):  
 
 
 @router.get("/", response_model=Page[UsuarioPublic])
-def listar_usuarios(db: Session = Depends(get_session)):  # noqa: B008
+def listar_usuarios(db: Session = Depends(get_session)):  
     query = select(Usuario)
-    return paginate(db, query)  # type: ignore
+    return paginate(db, query) 
 
 
-@router.get("/{usuario_id}", response_model=UsuarioNested, responses=error_404)  # type: ignore
-def obtener_usuario(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
+@router.get("/{usuario_id}", response_model=UsuarioNested, responses=error_404)  
+def obtener_usuario(usuario_id: int, db: Session = Depends(get_session)):  
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(
@@ -49,11 +49,11 @@ def obtener_usuario(usuario_id: int, db: Session = Depends(get_session)):  # noq
     return usuario
 
 
-@router.patch("/{usuario_id}", response_model=UsuarioPublic, responses=error_404)  # type: ignore
+@router.patch("/{usuario_id}", response_model=UsuarioPublic, responses=error_404)  
 def actualizar_usuario(
     usuario_id: int,
     usuario_update: UsuarioUpdate,
-    db: Session = Depends(get_session),  # noqa: B008
+    db: Session = Depends(get_session), 
 ):
     db_usuario = db.get(Usuario, usuario_id)
     if not db_usuario:
@@ -73,9 +73,9 @@ def actualizar_usuario(
 @router.delete(
     "/{usuario_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    responses=error_404,  # type: ignore
+    responses=error_404,  
 )
-def eliminar_usuario(usuario_id: int, db: Session = Depends(get_session)):  # noqa: B008
+def eliminar_usuario(usuario_id: int, db: Session = Depends(get_session)):  
     usuario = db.get(Usuario, usuario_id)
     if not usuario:
         raise HTTPException(
